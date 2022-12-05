@@ -19,7 +19,7 @@ Note: use procedures i.e. for read string, counting and for display digits.
 # 3. Exit
 The program will continue to execute until the user selects this choice.
 
-#A sample execution of the program
+# A sample execution of the program
 
 1. Array Sorting
 2. Letters Counter
