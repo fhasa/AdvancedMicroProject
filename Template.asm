@@ -234,8 +234,6 @@ INT 21H
 ;Letters Counter procedure
 lett PROC
 
-   MOV wordCount, 1            ;initially there is at least one word
-    MOV prevChar, ' '           ;previous is the space character
     CALL InitiateSI             ;initilize the memory 52 locations to zero
     outStr StringMessage
 
