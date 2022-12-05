@@ -14,13 +14,13 @@ list db 10,13, "           list:               "
      db 10,13, "Your choice: $"
 
 
-;array sorting variables
 sizeStatement DB "Enter array size to be from 2 to 9 : $"
-ten DB 0AH   
+ten DB 0AH  
+two DB 02H 
 num DB 0H
 arr1 DB 5 DUP (0)    
 prpt1 DB 0DH,0AH,"Enter  array elements without spaces: $"
-prpt2 DB 0DH,0AH,"array after sorting without spaces: $"
+prpt2 DB 0DH,0AH,"array after sorting: $"
 mc6 db 10,13, "Exiting the program $"
 mc7 db 10,13, "Invalid choice....try again $"
 empty db 10,13, "   $"
@@ -36,6 +36,19 @@ COLUMNSPACE DB" |$"
 FOURDASH DB"----$"  
 ThreeSpace DB"   $"
 .code
+; 					--------------------------		 macro used to print a character		-----------------------.
+
+
+outChar MACRO ch
+    PUSH AX
+    PUSH DX
+    MOV DL, ch
+    MOV AH,02h
+    INT 21h
+    POP DX
+    pop AX
+    ENDM
+; 					--------------------------		End of  macro used to print a character		-----------------------.
 
 
 ;                   ---------------------------    PROC to enter array dimension          -------------------------------
@@ -75,6 +88,7 @@ LOOP arrayRead
 RET
 ARRY ENDP
 ;					---------------------------	End of PROC to read elements		 ------------------------------------
+
 ;					-------------------------- 		proc for sorting	        	   	----------------------------------
 ;
 SORT PROC
@@ -123,7 +137,9 @@ MOV AH,0h
 MOV SI,0H
 MOV CH,0H
 MOV CL,num
-L4:MOV AH,0h
+L4:
+outChar 10
+MOV AH,0h
 MOV AL,arr1[SI]
 DIV ten    ;Divide num into digits
 MOV DL,AL
@@ -140,45 +156,10 @@ LOOP L4
 RET
 display ENDP
 ;					--------------------------		End of proc for display array after sorting    ------------------------------
-;					--------------------------		 PROC to dynamically print a number stored in the AX -----------------------------------------------------
-convert_display_words PROC
-    PUSH AX
-    PUSH CX
-    PUSH DX
-                        ;initilize count
-    MOV CX, 0
-    MOV DX, 0
-                        ;this loop used to store the digit in the stack.
-    STORE_DIGITS:  
-        MOV BX,10       ;initilize bx to 10
-        DIV BX          ;extract the last digit
-        PUSH DX         ;push it in the stack
-        INC CX          ;increment the count
-        XOR DX,DX       ;set dx to 0
-        CMP AX,0        ;if ax is zero
-        JE PRINT_DIGITS      
-        JMP STORE_DIGITS
-    PRINT_DIGITS:
-        CMP CX,0        ;check if count is greater than zero
-        JE Ex
-        POP DX          ;pop the top of stack
-        ADD DX,'0'      ;add 0 to the value to convert the number to ascii value
-                        ;interuppt to print a character
-        MOV AH,02H
-        INT 21H
-        DEC CX          ;decrease the count
-        JMP PRINT_DIGITS
-    Ex:
-        POP DX
-        POP CX
-        POP AX
-        RET
-convert_display_words ENDP
-;					--------------------------		 End of PROC to dynamically print a number stored in the AX -----------------------------------------------------
-; 					--------------------------       procedure to initiate the memory from 500H to 500H + (26)10 to be zero  ---------
+; 					--------------------------       procedure to initiate the memory from 500H to 500H + (52)10 to be zero  ---------
 InitiateSI PROC
     MOV SI ,500H
-    MOV CL,26
+    MOV CL,52
     MOV AL, 00H
     MYLOOP:  MOV [SI], AL
              INC SI
@@ -186,7 +167,7 @@ InitiateSI PROC
              JNZ MYLOOP     
 RET
 InitiateSI ENDP
-; 					--------------------------      End of procedure to initiate the memory from 500H to 500H + (26)10 to be zero  ---------
+; 					--------------------------      End of procedure to initiate the memory from 500H to 500H + (52)10 to be zero  ---------
 ; 					--------------------------		macro used to print a string		-----------------------.
 outStr MACRO msg
     PUSH AX
@@ -198,19 +179,6 @@ outStr MACRO msg
     POP AX
 ENDM
 ; 					--------------------------		End of macro used to print a string		-----------------------.
-; 					--------------------------		 macro used to print a character		-----------------------.
-
-
-outChar MACRO ch
-    PUSH AX
-    PUSH DX
-    MOV DL, ch
-    MOV AH,02h
-    INT 21h
-    POP DX
-    pop AX
-    ENDM
-; 					--------------------------		End of  macro used to print a character		-----------------------.
 ; 					--------------------------		macro used to read the choice		-----------------------.
 
 choice MACRO
@@ -244,7 +212,7 @@ case1:
 
 case2:  cmp bl,"2"         ;checking user choice for case 2
         jne case3          ;if not equal,check for case 3
-        CALL HIST
+        CALL lett
         jmp again
 
 
@@ -263,12 +231,12 @@ INT 21H
 ;-------------------------------------------------------------------------------
 
 ;-------------------------------------------------------------------------------
-;Text Statistics procesdure
-HIST PROC
+;Letters Counter procedure
+lett PROC
 
    MOV wordCount, 1            ;initially there is at least one word
     MOV prevChar, ' '           ;previous is the space character
-    CALL InitiateSI             ;initilize the memory 26 locations to zero
+    CALL InitiateSI             ;initilize the memory 52 locations to zero
     outStr StringMessage
 
     READ:
@@ -289,14 +257,24 @@ HIST PROC
             INC wordCount       ;if there is a charater after the ' ' count a word
     CONTINUE:  
             CMP AL, 'z'
-            JA NOT_ALPHA        ;if the input is not a letter don't count.
+            JA CAPITAL        ;if the input is not a letter don't count.
             CMP AL, 'a';
-            JNAE NOT_ALPHA      ;if the input is not a letter don't count.
+            JNAE CAPITAL      ;if the input is not a letter don't count.
             SUB AL,61H;
             ADD SI ,AX;
             MOV CL,01H;
             ADD  [SI], CL       ;Now add one  the letter location if the input is a letter [a-z];
-    NOT_ALPHA:  
+    CAPITAL:
+            CMP AL, 'Z'
+            JA NOT_ALPHA 
+            CMP AL, 'A';
+            JNAE NOT_ALPHA      ;if the input is not a letter don't count.
+            SUB AL,41H;
+			ADD AL ,26h;
+            ADD SI ,AX;
+            MOV CL,01H;
+            ADD  [SI], CL       ;Now add one  the letter location if the input is a letter [A-Z];			
+	NOT_ALPHA:  
             MOV prevChar, AL    ;set this character to be previus character  
             JMP READ;
     END_READ:
@@ -309,8 +287,13 @@ HIST PROC
             CMP AL, 00H         ;compare the occuerance of the letter with 00
             JZ ENDLOOP          ;not appears -> Yes -> ignore.
             MOV BL,CL
+			CMP BL, 25h;
+			JA capit2			
             ADD BL,'a'          ;convert to a ascii value
-            outChar BL          ;print the value.
+			JMP pr
+	 capit2:ADD BL,'A'
+			SUB BL,26H			
+		pr:	outChar BL          ;print the value.
             outStr COLUMNSPACE  ;print the " |" string
             MOV BL, [SI]
             ADD BL,30H
@@ -321,12 +304,12 @@ HIST PROC
                     ;
             ENDLOOP:    INC SI
                         INC CL
-                        MOV BL,26;
+                        MOV BL,52;
                         CMP CL,BL;
     JNE PRINTS
                                 ;Print the statistical bars
    RET
-HIST ENDP
+lett ENDP
 
 
 end start
