@@ -159,7 +159,7 @@ display ENDP
 ; 					--------------------------       procedure to initiate the memory from 500H to 500H + (52)10 to be zero  ---------
 InitiateSI PROC
     MOV SI ,500H
-    MOV CL,52
+    MOV CL, 52
     MOV AL, 00H
     MYLOOP:  MOV [SI], AL
              INC SI
@@ -270,7 +270,7 @@ lett PROC
             CMP AL, 'A';
             JNAE NOT_ALPHA      ;if the input is not a letter don't count.
             SUB AL,41H;
-			ADD AL ,26h;
+			ADD AL ,26;
             ADD SI ,AX;
             MOV CL,01H;
             ADD  [SI], CL       ;Now add one  the letter location if the input is a letter [A-Z];			
@@ -287,12 +287,12 @@ lett PROC
             CMP AL, 00H         ;compare the occuerance of the letter with 00
             JZ ENDLOOP          ;not appears -> Yes -> ignore.
             MOV BL,CL
-			CMP BL, 25h;
+			CMP BL, 25;
 			JA capit2			
             ADD BL,'a'          ;convert to a ascii value
 			JMP pr
 	 capit2:ADD BL,'A'
-			SUB BL,26H			
+			SUB BL,26			
 		pr:	outChar BL          ;print the value.
             outStr COLUMNSPACE  ;print the " |" string
             MOV BL, [SI]
