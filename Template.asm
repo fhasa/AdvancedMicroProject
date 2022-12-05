@@ -2,27 +2,32 @@
 .STACK 100H ; Stack size in bytes
 .data ; Data section
 
+
+;                       -----------------defining variables------------------------
+
 list db 10,13, "           list:               "
-     db 10,13, "****************************** "
-     db 10,13, "  1.Array sorter             "
-     db 10,13, "  2.Text Statistics         "
+     db 10,13, "		----------------		"
+     db 10,13, "  1.Array Sorting           "
+     db 10,13, "  2.Letters Counter         "
      db 10,13, "  3.EXIT               "
      db 10,13, "  "
      db 10,13, "Your choice: $"
-              ;CASE 1
-sz DB "Enter the dimenSIon of array: $"
+
+
+;array sorting variables
+sizeStatement DB "Enter array size to be from 2 to 9 : $"
 ten DB 0AH   
 num DB 0H
-arr1 DB 5 DUP (0)
-prpt1 DB 0DH,0AH,"Enter  array elements: $"
-prpt2 DB 0DH,0AH,"array after sorting: $"
+arr1 DB 5 DUP (0)    
+prpt1 DB 0DH,0AH,"Enter  array elements without spaces: $"
+prpt2 DB 0DH,0AH,"array after sorting without spaces: $"
 mc6 db 10,13, "Exiting the program $"
 mc7 db 10,13, "Invalid choice....try again $"
 empty db 10,13, "   $"
 rem DB 0H
-;-------------------------------------------------------------------------------
-               ;CASE 2
-wordCount DB 00H            ;word counter
+
+          
+wordCount DB 00H            ;word counter---------------55----------
 prevChar DB ' '             ;store the previous character, used in SA variable
 StringMessage DB "Enter a text then insert'*'- : ",10,"$"
 NoWords DB "Number Of Words: $";
@@ -31,25 +36,24 @@ COLUMNSPACE DB" |$"
 FOURDASH DB"----$"  
 ThreeSpace DB"   $"
 .code
-;-------------------------------------------------------------------------------
-;PROC to enter dim
+
+
+;                   ---------------------------    PROC to enter array dimension          -------------------------------
+
 DIM PROC
-LEA DX,sz
-MOV AH,09H ; Print  SIZE
+LEA DX,sizeStatement   
+MOV AH,09H ; Print  entering SIZE statement
 INT 21H
-MOV AH,01h ;Read tens digit
+MOV AH,01h ;Read 
 INT 21h
 SUB AL,30h ;From ASCII to actual value
-MUL ten ;Add Ten weight (10d)
-ADD num,AL ;Add tens value to num
-MOV AH,01h ;Read ones digit
-INT 21h
-SUB AL,30h ;From ASCII to actual value
-ADD num,AL ;Add tens value to num
+MOV num,AL ;Add tens value to num
 RET
 DIM ENDP
-;-------------------------------------------------------------------------------
-;PROC to read elements
+
+;					--------------------------   End of PROC to enter array dimension  ---------------------------
+;					--------------------------   PROC to read elements                ------------------------------
+
 ARRY PROC
 LEA DX,prpt1
 MOV AH,09H ; Print  prompt
@@ -57,21 +61,22 @@ INT 21H
 MOV CH,0H
 MOV CL,num
 MOV SI,0H
-l1:MOV AH,01H 
+arrayRead:MOV AH,01H 
 INT 21H ;
 SUB AL,30H ;
-MUL ten ;
-MOV arr1[SI],AL ;  Read first number
+MUL ten ; multiply with ten to get the tenth part
+MOV arr1[SI],AL ;  add it to the array
 MOV AH,01H ;
 INT 21H ;
 SUB AL,30H ;
 ADD arr1[SI],AL
 INC SI
-LOOP L1
+LOOP arrayRead
 RET
 ARRY ENDP
-;-------------------------------------------------------------------------------
-;proc for sorting
+;					---------------------------	End of PROC to read elements		 ------------------------------------
+;					-------------------------- 		proc for sorting	        	   	----------------------------------
+;
 SORT PROC
 MOV CH,0H
 MOV CL,num ;set the cl to size of array
@@ -81,47 +86,35 @@ mov AX, 1 ; this is done
 
 DEC CX    ; to avoid the done comparison
 
-Loop1:        
-
-        push CX  ; store the limit of outerLoop in stack  
-
+Loop1:
+        push CX  ; store the limit of outerLoop in stack 
         mov BL, arr1[SI]    ; store the element in bl pointed by si                                                  
-
-       
-
         MOV CH,0H
         MOV CL,num  ; store the value of size in cx for innerLoop        
-        sub CX, AX     ; this is done so that the limit does not proceed the limit of array elements.
+        sub CX, AX     ; this is done so that the value does not proceed the value of array elements.
 Loop2:
 
-             INC DI                  
-
-             CMP BL, arr1[DI]  ; compare the if BL is not greater than  
-             JG cont          ; content of element pointed by DI if yes then continue otherwise swap the value by executing below statements  
-
+             INC DI            
+             CMP BL, arr1[DI]  ;compare the if BL is less than continueent of element pointed by DI if yes then continueinue otherwise swap the value by executing below statements  
+             JG cont          
              MOV DL, arr1[DI]    ; get the element pointed by DI into DL
              MOV arr1[DI], BL   ; swap the
              MOV arr1[SI], DL   ; elements
              MOV BL, DL             ; store the smallest element in BL                              
 
      cont:
-
         loop Loop2
-
         INC AX                                                        
-
-        POP CX  ; get the limit of outerLoop
-
+        POP CX  ; get the value of outerLoop
         INC SI  ; increment the index of outerLoop to point to the next element  
-
         MOV DI, SI ; point to the same index
-
         LOOP Loop1          
 
 RET
 SORT ENDP
-;-------------------------------------------------------------------------------
-;proc for display array after sorting
+;					-------------------------- 		End of proc for sorting	        	   	----------------------------------
+;					--------------------------		proc for display array after sorting    ------------------------------
+
 display PROC
 LEA DX,prpt2
 MOV AH,09H ; Print  prompt
@@ -146,8 +139,8 @@ INC SI
 LOOP L4
 RET
 display ENDP
-;-------------------------------------------------------------------------------
-;convert_display_words PROC to print a number stored in the AX, dynamically print
+;					--------------------------		End of proc for display array after sorting    ------------------------------
+;					--------------------------		 PROC to dynamically print a number stored in the AX -----------------------------------------------------
 convert_display_words PROC
     PUSH AX
     PUSH CX
@@ -181,8 +174,8 @@ convert_display_words PROC
         POP AX
         RET
 convert_display_words ENDP
-;-------------------------------------------------------------------------------
-; procesdure to initiate the memory from 500H to 500H + (26)10 to be zero
+;					--------------------------		 End of PROC to dynamically print a number stored in the AX -----------------------------------------------------
+; 					--------------------------       procedure to initiate the memory from 500H to 500H + (26)10 to be zero  ---------
 InitiateSI PROC
     MOV SI ,500H
     MOV CL,26
@@ -193,8 +186,8 @@ InitiateSI PROC
              JNZ MYLOOP     
 RET
 InitiateSI ENDP
-;-------------------------------------------------------------------------------
-; macro used to print a string.
+; 					--------------------------      End of procedure to initiate the memory from 500H to 500H + (26)10 to be zero  ---------
+; 					--------------------------		macro used to print a string		-----------------------.
 outStr MACRO msg
     PUSH AX
     PUSH DX
@@ -204,8 +197,10 @@ outStr MACRO msg
     POP DX
     POP AX
 ENDM
-;-------------------------------------------------------------------------------
-; micro used to print a character.
+; 					--------------------------		End of macro used to print a string		-----------------------.
+; 					--------------------------		 macro used to print a character		-----------------------.
+
+
 outChar MACRO ch
     PUSH AX
     PUSH DX
@@ -215,13 +210,17 @@ outChar MACRO ch
     POP DX
     pop AX
     ENDM
-;-------------------------------------------------------------------------------
-; micro used to read the choice.
+; 					--------------------------		End of  macro used to print a character		-----------------------.
+; 					--------------------------		macro used to read the choice		-----------------------.
+
 choice MACRO
     MOV AH ,01H
     INT 21H
 ENDM
-;-------------------------------------------------------------------------------
+; 					--------------------------		End of macro used to read the choice	-----------------------.
+
+
+;					--------------------------		Start of program 						----------------------------------
 start:
 MOV AX,@DATA ; Initialize DS
 MOV DS,AX
@@ -249,8 +248,8 @@ case2:  cmp bl,"2"         ;checking user choice for case 2
         jmp again
 
 
-case3: cmp bl,"3"    ;check for case 6
-       jne case4   ;if not equal,default to case 7 and print the error message
+case3: cmp bl,"3"    ;check for case 3
+       jne case4   ;if not equal,default to case 4 and print the error message
        outStr mc6
        jmp exit
          
@@ -261,6 +260,8 @@ exit:
 
 MOV AH,4CH ; End of program    
 INT 21H
+;-------------------------------------------------------------------------------
+
 ;-------------------------------------------------------------------------------
 ;Text Statistics procesdure
 HIST PROC
@@ -312,52 +313,19 @@ HIST PROC
             outChar BL          ;print the value.
             outStr COLUMNSPACE  ;print the " |" string
             MOV BL, [SI]
-            FREQ:   outChar '*' ;print stars for its occuerence number.
-                    DEC BL
-                    JNZ FREQ
-                    outChar 10;
+            ADD BL,30H
+			MOV DL,BL
+			MOV AH,02h ;Display ones digit
+			INT 21h
+			outChar 10
+                    ;
             ENDLOOP:    INC SI
                         INC CL
                         MOV BL,26;
                         CMP CL,BL;
     JNE PRINTS
                                 ;Print the statistical bars
-    outStr ThreeSpace;
-    outStr FOURDASH;
-    outChar '|';
-    outStr FOURDASH;
-    outChar '|';
-    outStr FOURDASH;
-    outChar '|';
-    outStr FOURDASH;
-    outChar '|';
-    outChar 10;
-    outStr ThreeSpace;
-    outStr FourSpace;
-    outChar '5';
-    outStr FourSpace;
-    outChar '1';
-    outChar '0';
-    outStr ThreeSpace;
-    outChar '1';
-    outChar '5';
-    outStr ThreeSpace;
-    outChar '2';
-    outChar '0';
-    outChar 10;
-                              ;end Print the statistical bars
-    outStr NoWords
-                              ;if the string end by new line or ' ' decrease the number of words by 1
-    MOV BL, ' '
-    MOV AL, wordCount
-    CMP prevChar,BL           ;check the last entered character.
-    JNE SHARP_CASE            ;' ' so decrease by one.
-    DEC AL
-    SHARP_CASE:  
-     CALL convert_display_words
-      outStr empty
-
- RET
+   RET
 HIST ENDP
 
 
